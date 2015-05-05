@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">QuizDroid pt2</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_quiz">QuizActivity</string>
+    <string name="title_activity_topic_overview_fragment">TopicOverviewFragment</string>
+    <string name="title_activity_question_fragment">QuestionFragment</string>
+    <string name="title_activity_answer_fragment">AnswerFragment</string>
+</resources>
