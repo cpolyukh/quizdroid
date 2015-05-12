@@ -19,7 +19,12 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
+import org.json.JSONException;
+import org.json.simple.parser.ParseException;
+
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.TreeMap;
 
 
@@ -49,91 +54,93 @@ public class QuestionFragment extends Fragment {
         final View fragmentView = inflater.inflate(R.layout.activity_question_fragment, container, false);
         container.removeAllViews();
 
-        quizTopic = getArguments().getString("topic");
-        Log.i("QuestionFragment", quizTopic);
+        QuizApp quizApp = QuizApp.getInstance();
 
-        final TreeMap<String, HashMap<String, Boolean>> questionsAndAnswers = QuizConstants.topicsToQuestions.get(quizTopic);
+        try {
+            TopicRepository repository = quizApp.getRepository();
+            List<Topic> topicList = repository.getAllTopics();
+            Topic currentTopic = repository.getTopicByName(quizTopic);
+            List<Question> questionList = currentTopic.getQuestions();
+            final int count = currentTopic.getQuestionCount();
 
-        String[] questions = questionsAndAnswers.keySet().toArray(new String[questionsAndAnswers.size()]);
+            quizTopic = getArguments().getString("topic");
+            Log.i("QuestionFragment", quizTopic);
 
-        if (questionsAnswered >= questions.length) {
-            questionsAnswered = questions.length - 1;
-        }
+            if (questionsAnswered >= count) {
+                questionsAnswered = count - 1;
+            }
 
-        String currentQuestion = questions[questionsAnswered];
-        final HashMap<String, Boolean> currentAnswers = questionsAndAnswers.get(currentQuestion);
+            Question currentQuestion = questionList.get(questionsAnswered);
+            String currentQuestionString = currentQuestion.getQuestion();
+            final String[] currentAnswers = currentQuestion.getAnswers();
+            final int answerIndex = currentQuestion.getCorrectAnswerNum() - 1;
 
-        setValues(currentQuestion, currentAnswers, fragmentView);
+            setValues(currentQuestionString, currentAnswers, fragmentView);
 
-        Button submit = (Button) fragmentView.findViewById(R.id.btnSubmit);
+            Button submit = (Button) fragmentView.findViewById(R.id.btnSubmit);
 
-        submit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (hostActivity instanceof QuizActivity) {
-                    Log.i("QuestionFragment", "Button clicked!");
-                    ((QuizActivity) hostActivity).loadAnswerFrag();
+            submit.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (hostActivity instanceof QuizActivity) {
+                        Log.i("QuestionFragment", "Button clicked!");
+                        ((QuizActivity) hostActivity).loadAnswerFrag();
 
-                    RadioGroup quizChoices = (RadioGroup) fragmentView.findViewById(R.id.quizChoices);
-                    int selectedAnswerId = quizChoices.getCheckedRadioButtonId();
-                    if (selectedAnswerId != -1) {
-                        questionsAnswered++;
-                        Log.i("QuestionFragment", "" + questionsAnswered);
-                        RadioButton selectedAnswer = (RadioButton) fragmentView.findViewById(selectedAnswerId);
+                        RadioGroup quizChoices = (RadioGroup) fragmentView.findViewById(R.id.quizChoices);
+                        int selectedAnswerId = quizChoices.getCheckedRadioButtonId();
+                        if (selectedAnswerId != -1) {
+                            questionsAnswered++;
+                            Log.i("QuestionFragment", "" + questionsAnswered);
+                            RadioButton selectedAnswer = (RadioButton) fragmentView.findViewById(selectedAnswerId);
 
-                        String answerText = (String) selectedAnswer.getText();
-                        String correctAnswer = findCorrectAnswer(currentAnswers);
+                            String answerText = (String) selectedAnswer.getText();
+                            String correctAnswer = currentAnswers[answerIndex];
 
-                        if (answerText.equals(correctAnswer)) {
-                            correctAnswers++;
+                            if (answerText.equals(correctAnswer)) {
+                                correctAnswers++;
+                            }
+
+                            FragmentManager fm = getFragmentManager();
+                            FragmentTransaction ft = fm.beginTransaction();
+
+                            Bundle topicBundle = new Bundle();
+                            topicBundle.putString("topic", quizTopic);
+                            topicBundle.putInt("correct answers", correctAnswers);
+                            topicBundle.putInt("questions answered", questionsAnswered);
+                            topicBundle.putString("your answer", answerText);
+                            topicBundle.putString("correct answer", correctAnswer);
+                            topicBundle.putInt("total questions", count);
+
+                            AnswerFragment answerFragment = new AnswerFragment();
+                            answerFragment.setArguments(topicBundle);
+
+                            ft.add(R.id.questionContainer, answerFragment);
+                            ft.commit();
                         }
-
-                        FragmentManager fm = getFragmentManager();
-                        FragmentTransaction ft = fm.beginTransaction();
-
-                        Bundle topicBundle = new Bundle();
-                        topicBundle.putString("topic", quizTopic);
-                        topicBundle.putInt("correct answers", correctAnswers);
-                        topicBundle.putInt("questions answered", questionsAnswered);
-                        topicBundle.putString("your answer", answerText);
-                        topicBundle.putString("correct answer", correctAnswer);
-                        topicBundle.putInt("total questions", questionsAndAnswers.size());
-
-                        AnswerFragment answerFragment = new AnswerFragment();
-                        answerFragment.setArguments(topicBundle);
-
-                        ft.add(R.id.questionContainer, answerFragment);
-                        ft.commit();
                     }
                 }
-            }
-        });
+            });
+        } catch (IOException i) {
+
+        } catch (JSONException je) {
+
+        }
+
+
         return fragmentView;
     }
 
-    public String findCorrectAnswer(HashMap<String, Boolean> currentAnswers) {
-        String correctAnswer = null;
-
-        for (String currentAnswer : currentAnswers.keySet()) {
-            if (currentAnswers.get(currentAnswer)) {
-                correctAnswer = currentAnswer;
-            }
-        }
-
-        return correctAnswer;
-    }
-
-    public void setValues(String currentQuestion, HashMap<String, Boolean> currentAnswers, View v) {
+    public void setValues(String currentQuestionString, String[] currentAnswers, View v) {
         RadioButton rbAns1 = (RadioButton)v.findViewById(R.id.rbAns1);
         RadioButton rbAns2 = (RadioButton)v.findViewById(R.id.rbAns2);
         RadioButton rbAns3 = (RadioButton)v.findViewById(R.id.rbAns3);
         RadioButton rbAns4 = (RadioButton)v.findViewById(R.id.rbAns4);
         TextView txtQuestion = (TextView)v.findViewById(R.id.txtQuestion);
 
-        txtQuestion.setText(currentQuestion);
+        txtQuestion.setText(currentQuestionString);
 
         int i = 0;
-        for (String currentAnswer : currentAnswers.keySet()) {
+        for (String currentAnswer : currentAnswers) {
 
             if (i == 0) {
                 rbAns1.setText(currentAnswer);

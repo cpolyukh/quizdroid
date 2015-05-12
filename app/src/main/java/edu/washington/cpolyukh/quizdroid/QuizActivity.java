@@ -1,5 +1,6 @@
 package edu.washington.cpolyukh.quizdroid;
 
+import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Intent;
@@ -14,11 +15,16 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 
+import org.json.JSONException;
+import org.json.simple.parser.ParseException;
+
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.TreeMap;
 
 
-public class QuizActivity extends ActionBarActivity {
+public class QuizActivity extends Activity {
     private String quizTopic;
 
     @Override
@@ -30,37 +36,48 @@ public class QuizActivity extends ActionBarActivity {
 
         if (whoCalledMe != null) {
             quizTopic = whoCalledMe.getStringExtra("topic");
-            String description = QuizConstants.topicsToDescriptions.get(quizTopic);
-            TreeMap<String, HashMap<String, Boolean>> questions = QuizConstants.topicsToQuestions.get(quizTopic);
-            int count = questions.size();
 
-            TextView txtTopic = (TextView)findViewById(R.id.txtTopic);
-            TextView txtDesc = (TextView)findViewById(R.id.txtDescr);
-            TextView txtNumQues = (TextView)findViewById(R.id.txtNumQues);
+            QuizApp quizApp = QuizApp.getInstance();
+            try {
+                TopicRepository repository = quizApp.getRepository();
+                List<Topic> topicList = repository.getAllTopics();
+                Topic currentTopic = repository.getTopicByName(quizTopic);
+                List<Question> questionList = currentTopic.getQuestions();
+                String description = currentTopic.getLongDescription();
+                int count = currentTopic.getQuestionCount();
 
-            txtTopic.setText(quizTopic);
-            txtDesc.setText(description);
-            txtNumQues.setText("Number of questions in this quiz: " + count);
+                TextView txtTopic = (TextView) findViewById(R.id.txtTopic);
+                TextView txtDesc = (TextView) findViewById(R.id.txtDescr);
+                TextView txtNumQues = (TextView) findViewById(R.id.txtNumQues);
 
-            Button beginQuiz = (Button)findViewById(R.id.btnStart);
-            beginQuiz.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
+                txtTopic.setText(quizTopic);
+                txtDesc.setText(description);
+                txtNumQues.setText("Number of questions in this quiz: " + count);
 
-                // Loads QuestionFragment
-                FragmentManager fm = getFragmentManager();
-                FragmentTransaction ft = fm.beginTransaction();
+                Button beginQuiz = (Button) findViewById(R.id.btnStart);
+                beginQuiz.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
 
-                Bundle topicBundle = new Bundle();
-                topicBundle.putString("topic", quizTopic);
+                        // Loads QuestionFragment
+                        FragmentManager fm = getFragmentManager();
+                        FragmentTransaction ft = fm.beginTransaction();
 
-                QuestionFragment questionFragment = new QuestionFragment();
-                questionFragment.setArguments(topicBundle);
+                        Bundle topicBundle = new Bundle();
+                        topicBundle.putString("topic", quizTopic);
 
-                ft.add(R.id.container, questionFragment);
-                ft.commit();
-                }
-            });
+                        QuestionFragment questionFragment = new QuestionFragment();
+                        questionFragment.setArguments(topicBundle);
+
+                        ft.add(R.id.container, questionFragment);
+                        ft.commit();
+                    }
+                });
+            } catch (IOException i) {
+
+            } catch (JSONException je) {
+
+            }
         }
     }
 

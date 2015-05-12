@@ -1,5 +1,6 @@
 package edu.washington.cpolyukh.quizdroid;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.ActionBarActivity;
@@ -12,14 +13,18 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import org.json.JSONException;
+import org.json.simple.parser.ParseException;
+
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 
 
-public class TopicActivity extends FragmentActivity {
+public class TopicActivity extends Activity {
 
-    private HashMap<String, String> topicMap = QuizConstants.topicsToDescriptions;
-    private String[] topics = topicMap.keySet().toArray(new String[topicMap.size()]);
-    private ListView topicList;
+    private List<Topic> topicList;
+    private ListView topicListView;
     public static final String MAIN_ACTIVITY = "MainActivity";
 
     @Override
@@ -27,23 +32,36 @@ public class TopicActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_topic);
 
-        topicList = (ListView) findViewById(R.id.lstTopics);
+        QuizApp quizApp = QuizApp.getInstance();
 
-        final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.simple_list_item, topics);
-        topicList.setAdapter(adapter);
+        try {
+            TopicRepository repository = quizApp.getRepository();
+            topicList = repository.getAllTopics();
+            List<String> topicNames = repository.getTopicNames();
 
-        topicList.setOnItemClickListener(new ListView.OnItemClickListener() {
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String currentTopic = adapter.getItem(position);
 
-                Intent overview = new Intent(TopicActivity.this, QuizActivity.class);
-                overview.putExtra("topic", currentTopic);
+            topicListView = (ListView) findViewById(R.id.lstTopics);
 
-                startActivity(overview);
+            final ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.simple_list_item, topicNames);
+            topicListView.setAdapter(adapter);
 
-                finish();
-            }
-        });
+            topicListView.setOnItemClickListener(new ListView.OnItemClickListener() {
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    String currentTopic = adapter.getItem(position);
+
+                    Intent overview = new Intent(TopicActivity.this, QuizActivity.class);
+                    overview.putExtra("topic", currentTopic);
+
+                    startActivity(overview);
+
+                    finish();
+                }
+            });
+        } catch (IOException i) {
+
+        } catch (JSONException je) {
+
+        }
     }
 
 
