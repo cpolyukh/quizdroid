@@ -7,4 +7,6 @@
     <string name="title_activity_topic_overview_fragment">TopicOverviewFragment</string>
     <string name="title_activity_question_fragment">QuestionFragment</string>
     <string name="title_activity_answer_fragment">AnswerFragment</string>
+    <string name="title_activity_preference">PreferenceActivity</string>
+    <string name="title_activity_user_setting">UserSettingActivity</string>
 </resources>

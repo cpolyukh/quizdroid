@@ -1,5 +1,6 @@
 package edu.washington.cpolyukh.quizdroid;
 
+import android.app.DownloadManager;
 import android.util.Log;
 
 import org.json.JSONException;
@@ -17,6 +18,10 @@ public class QuizApp extends android.app.Application {
     public static final String TAG = "QuizApp";
     private TopicRepository topicsRepository;
     private static final boolean readFromJSON = true;
+    private DownloadManager dm;
+    private long enqueue;
+    public static String URL = "http://tednewardsandbox.site44.com/questions.json";
+    public static int minutes = 5;
 
     public static QuizApp getInstance() {
         if (instance == null) {
@@ -49,9 +54,12 @@ public class QuizApp extends android.app.Application {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+
+        DownloadService.startOrStopAlarm(this, true);
     }
 
-    public List<Topic> createJSONList() throws JSONException, IOException{
+    public List<Topic> createJSONList() throws JSONException, IOException {
+        DownloadService.startOrStopAlarm(this, true);
 
         String json = null;
         this.topicsRepository = HardCodedRepository.getInstance();
@@ -63,26 +71,12 @@ public class QuizApp extends android.app.Application {
         List<Topic> newTopicList = new ArrayList<Topic>();
 
         for (int i = 0; i < jsonArray.length(); i++)  {
-
-            Log.i("QuizApp", "1");
-
             JSONObject currentJSONObject = (JSONObject) jsonArray.get(i);
 
-            Log.i("QuizApp", "2");
-
             String title = currentJSONObject.getString("title");
-            Log.i("QuizApp", "3");
-
             String desc = currentJSONObject.getString("desc");
-
-            Log.i("QuizApp", "4");
             JSONArray questionArray = currentJSONObject.getJSONArray("questions");
-
-            Log.i("QuizApp", "5");
-
             List<Question> currentQuestions = new ArrayList<Question>();
-
-            Log.i("QuizApp", "6");
 
             for (int j = 0; j < questionArray.length(); j++) {
                 JSONObject currentQuestionJSONObject = (JSONObject) questionArray.get(j);
@@ -110,6 +104,9 @@ public class QuizApp extends android.app.Application {
         return newTopicList;
     }
 
+    public void updateRepository() throws JSONException, IOException {
+        createJSONList();
+    }
 
     public QuizApp() {
         if (instance == null) {

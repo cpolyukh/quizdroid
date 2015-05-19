@@ -2,7 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="edu.washington.cpolyukh.quizdroid" >
 
-    <application android:name=".QuizApp">
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application android:name=".QuizApp" >
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -32,8 +34,11 @@
             android:name=".QuizApp"
             android:label="QuizApp" >
         </activity>
+        <activity
+            android:name=".UserSettingActivity"
+            android:label="@string/title_activity_user_setting" >
+        </activity>
+        <receiver android:name=".AlarmReceiver"></receiver>
     </application>
-
-    <uses-permission android:name="android.permission.INTERNET" />
 
 </manifest>
