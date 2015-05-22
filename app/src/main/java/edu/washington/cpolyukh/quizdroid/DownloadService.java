@@ -47,7 +47,9 @@ public class DownloadService extends IntentService {
         // Star the download
         dm = (DownloadManager) getSystemService(DOWNLOAD_SERVICE);
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(URL));
+
         enqueue = dm.enqueue(request);
+
     }
 
     public static void startOrStopAlarm(Context context, boolean on) {

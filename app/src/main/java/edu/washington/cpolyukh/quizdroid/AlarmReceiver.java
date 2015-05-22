@@ -19,6 +19,6 @@ public class AlarmReceiver extends BroadcastReceiver{
         Intent downloadServiceIntent = new Intent(context, DownloadService.class);
         context.startService(downloadServiceIntent);
 
-        Toast.makeText(context, URL, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(context, URL, Toast.LENGTH_SHORT).show();
     }
 }

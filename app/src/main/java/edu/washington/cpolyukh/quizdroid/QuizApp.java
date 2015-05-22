@@ -8,6 +8,9 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 import org.json.simple.parser.ParseException;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -61,10 +64,55 @@ public class QuizApp extends android.app.Application {
     public List<Topic> createJSONList() throws JSONException, IOException {
         DownloadService.startOrStopAlarm(this, true);
 
+        /*String FILENAME = "hello_file";
+        String string = "hello world!";
+
+        FileOutputStream fos = openFileOutput(FILENAME, Context.MODE_PRIVATE);
+        fos.write(string.getBytes());
+        fos.close();
+
+        Call openFileInput() and pass it the name of the file to read. This returns a FileInputStream.
+        Read bytes from the file with read().
+                Then close the stream with close().*/
+
+
+        String FILE_NAME = "questions.json";
+        //FileInputStream inputStream = openFileInput(FILE_NAME);
+
+        File myFile = new File(getFilesDir().getAbsolutePath(), "/" + FILE_NAME);
+
         String json = null;
         this.topicsRepository = HardCodedRepository.getInstance();
-        InputStream inputStream = getAssets().open("questions.json");
-        json = readJSONFile(inputStream);
+        //Log.i("QuizApp", "file path: " + getFilesDir().getAbsolutePath());
+        //File file = new File(getFilesDir().getAbsolutePath() + "/questions.json");
+        //InputStream inputStream = new FileInputStream(file);
+        //InputStream inputStream2 = getAssets().open(getFilesDir().getAbsolutePath() + "questions.json");
+        //json = readJSONFile(inputStream);
+
+        if (myFile.exists()) {
+            Log.i("MyApp", "data.json DOES exist");
+
+            try {
+                FileInputStream fis = openFileInput("questions.json");      // sweet we found it. openFileInput() takes a string path from your data directory. no need to put 'data/' in your path parameter
+                json = readJSONFile(fis);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+
+        } else {
+            // Can't find data.json file in files directory. Fetch data.json in assets
+            Log.i("MyApp", "data.json DOESN'T exist. Fetch from assets");
+
+            try {
+                InputStream inputStream = getAssets().open("questions.json");
+                json = readJSONFile(inputStream);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         JSONArray jsonArray = new JSONArray(json);
 
